@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>實習祝福與每日心靈籤詩系統</title>
+    <style>
+        /* 復古質感與現代洗鍊融合風格 */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            background-color: #f7f5f0;
+            color: #3e3a36;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            background: #ffffff;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(140, 45, 25, 0.06);
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid #e6e1da;
+            position: relative;
+        }
+
+        /* 雙框線裝飾，更有籤簿感 */
+        .container::after {
+            content: '';
+            position: absolute;
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 1px solid #ebdcd5;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        h1 {
+            color: #8c2d19;
+            font-size: 1.8rem;
+            margin-top: 0;
+            margin-bottom: 12px;
+            letter-spacing: 3px;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            color: #7c756d;
+            font-size: 0.95rem;
+            margin-bottom: 35px;
+            line-height: 1.5;
+        }
+
+        /* 互動圖示 */
+        .fortune-box {
+            font-size: 5.5rem;
+            margin: 25px 0;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+            user-select: none;
+            display: inline-block;
+        }
+
+        /* 搖晃動畫 */
+        @keyframes shake {
+            0% { transform: translate(2px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-2deg); }
+            20% { transform: translate(-3px, 0px) rotate(2deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-2deg); }
+            80% { transform: translate(-1px, -1px) rotate(2deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shaking {
+            animation: shake 0.45s infinite;
+        }
+
+        /* 抽籤按鈕 */
+        .btn {
+            background-color: #8c2d19;
+            color: #ffffff;
+            border: none;
+            padding: 14px 36px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(140, 45, 25, 0.15);
+            transition: all 0.3s ease;
+            letter-spacing: 2px;
+            font-weight: 500;
+            position: relative;
+            z-index: 5;
+        }
+
+        .btn:hover {
+            background-color: #a6351e;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(140, 45, 25, 0.25);
+        }
+
+        .btn:disabled {
+            background-color: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 籤詩結果卡片 */
+        .result-card {
+            margin-top: 35px;
+            padding: 30px 25px;
+            background-color: #faf9f6;
+            border-top: 4px solid #8c2d19;
+            border-radius: 4px;
+            min-height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.01);
+        }
+
+        .result-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 語錄內文排版 */
+        .fortune-text {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #2b2825;
+            line-height: 1.8;
+            white-space: pre-line; /* 保留換行 */
+            text-align: left;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✨ 實習心靈籤詩 ✨</h1>
+    <p class="subtitle">靜心默念內心的迷惘或期許<br>點擊下方按鈕，抽取給你的專屬指引</p>
+    
+    <div id="fortuneBox" class="fortune-box">🔮</div>
+    
+    <div>
+        <button id="drawBtn" class="btn" onclick="drawFortune()">祈福抽籤</button>
+    </div>
+    
+    <div id="resultCard" class="result-card">
+        <div id="fortuneText" class="fortune-text"></div>
+    </div>
+</div>
+
+<script>
+    // 包含你提供的全部 70+ 條經典名言與今日暗示語錄
+    const quotes = [
+        "齊克果說：「人生只能向後理解，卻必須向前生活。」\n願你先勇敢往前，因為很多答案，走過才會懂。",
+        "馬可・奧理略說：「擋在路上的，成為道路本身。」\n願你把實習中的困難，不只看成阻礙，而是走成自己的路。",
+        "杜威說：「教育不是為生活做準備；教育就是生活本身。」\n願你把實習當成真正的生活課，從現場學會長大。",
+        "孔子說：「知之為知之，不知為不知，是知也。」\n願你不怕不懂，因為敢問、敢學，才是真正的專業開始。",
+        "王陽明說：「知行合一。」\n願你不只學過，也能做到；不只知道，也能實踐。",
+        "老子說：「千里之行，始於足下。」\n願你今天踏出的這一步，成為未來很長一段路的開始。",
+        "老子說：「知人者智，自知者明。」\n願你在實習中看懂世界，也慢慢看懂自己。",
+        "荀子說：「不積跬步，無以至千里。」\n願你不要小看每天的一點進步，因為未來就是這樣累積起來的。",
+        "尼采說：「成為你自己。」\n願你在實習中學習別人，也不要忘記長成自己的樣子。",
+        "卡繆說：「在隆冬之中，我終於知道，我身上有一個不可戰勝的夏天。」\n願你即使遇到低潮，也記得自己心裡還有光。",
+        "維克多・法蘭克說：「人最後的自由，是在任何處境中選擇自己的態度。」\n願你面對不能選擇的環境時，仍能選擇堅定、善良與負責。",
+        "羅素說：「美好的人生，是由愛所激勵，由知識所引導。」\n願你帶著熱情出發，也帶著知識判斷方向。",
+        "愛比克泰德說：「困擾人的不是事情本身，而是人對事情的看法。」\n願你換一種眼光看挑戰，不被一時的挫折定義。",
+        "塞內卡說：「困難會強化心靈，如同勞動強化身體。」\n願辛苦不是壓垮你，而是讓你長出力量。",
+        "康德說：「人是目的，而不只是手段。」\n願你進入職場後，仍記得尊重自己，也尊重每一個人。",
+        "孫子說：「知彼知己，百戰不殆。」\n願你進入新的場域時，既懂得觀察環境，也懂得照顧自己。",
+        "孫子說：「兵無常勢，水無常形。」\n願你像水一樣柔軟卻有力量，能適應，也能前進。",
+        "孫子說：「上兵伐謀。」\n願你不只是把事情做完，也能學會思考、判斷與策略。",
+        "克勞塞維茨說：「戰爭中一切都很簡單，但最簡單的事也很困難。」\n願你不輕看每一件小事，因為真正的專業常藏在基本功裡。",
+        "羅斯福說：「榮耀屬於真正站在競技場中的人。」\n願你勇敢站進自己的現場，即使滿身塵土，也比從未嘗試更光榮。",
+        "曼德拉說：「勇氣不是沒有恐懼，而是戰勝恐懼。」\n願你不是因為不怕才出發，而是即使害怕，也選擇往前。",
+        "曼德拉說：「一切看似不可能，直到它被完成。」\n願你把不可能，一件一件變成「我做到了」。",
+        "艾森豪說：「計畫本身可能無用，但規劃這件事不可或缺。」\n願你不害怕計畫改變，因為準備過的人，才有能力應變。",
+        "巴頓說：「一個現在執行的好計畫，勝過一個遙遙無期的完美計畫。」\n願你不要等到完美才開始，因為很多能力，是開始之後才長出來的。",
+        "凱撒說：「經驗是一切事物的老師。」\n願現場成為你的老師，讓每一次經歷都變成能力。",
+        "王勃說：「海內存知己，天涯若比鄰。」\n願我們未來即使各奔東西，真正的情誼仍像在身旁。",
+        "蘇軾說：「但願人長久，千里共嬋娟。」\n願大家此去實習平安順利，即使相隔很遠，也共享同一份祝福。",
+        "小王子說：「真正重要的東西，用眼睛是看不見的。」\n願我們記得，陪伴、支持與默契，都是青春裡看不見卻很重要的東西。",
+        "小王子說：「正因為你為你的玫瑰花費了時間，才使你的玫瑰如此重要。」\n這段關係之所以珍貴，不是因為它完美，而是因為我們一起花時間走過。",
+        "莊子說：「君子之交淡若水。」\n願我們未來不一定天天聯絡，卻仍在需要時想起彼此。",
+        "莊子說：「相濡以沫，不如相忘於江湖。」\n願我們不只停在互相依靠，也祝福彼此走向更大的世界。",
+        "孔子說：「有朋自遠方來，不亦樂乎。」\n願我們未來再相聚時，仍能像今天一樣真心歡喜。",
+        "孔子說：「益者三友，友直，友諒，友多聞。」\n願我們成為彼此生命裡有益的朋友：真誠、包容，也一起成長。",
+        "李白說：「桃花潭水深千尺，不及汪倫送我情。」\n願我們記得，青春最深的不是某個地點，而是一路上有人相伴的情分。",
+        "張九齡說：「海上生明月，天涯共此時。」\n願我們未來雖在不同地方，仍在同一片月光下，為彼此祝福。",
+        "亞里斯多德說：「朋友是另一個自己。」\n願我們在各自實習後，仍記得曾經有一群人陪我們成長。",
+        "西塞羅說：「友誼使幸福加倍，使痛苦減半。」\n願你未來遇見好事有人分享，遇見難事也有人願意聽你說。",
+        "里爾克說：「愛，就是守護另一個人的孤獨。」\n願我們的友情，不只在熱鬧時相聚，也在迷惘時給彼此空間與理解。",
+        "紀伯倫說：「彼此相愛，但不要讓愛成為束縛。」\n願我們彼此珍惜，也彼此放手，祝福每個人走向自己的路。",
+        "三毛說：「朋友最美在於錦上添花，最可貴在於雪中送炭。」\n願我們未來不只在順利時祝賀，也在辛苦時成為彼此的依靠。",
+        "今日籤語：你不是迷路，你只是在長出新的導航。\n今日提醒：不確定不是失敗，是人生正在重新定位。\n實習暗示：今天先不用證明自己很強，只要願意開始就夠了。",
+        "今日籤語：宇宙沒有叫你完美，只叫你出席。\n今日提醒：很多成長不是靠準備好，而是靠真的到場。\n實習暗示：準時、主動、願意問，就是今天的幸運關鍵。",
+        "今日籤語：今天的你，不需要成為答案，只需要靠近答案。\n今日提醒：迷惘不代表沒有方向，它只是方向還沒顯影。\n實習暗示：把今天遇到的一個問題記下來，它會成為你的經驗值。",
+        "今日籤語：別急著開花，先允許自己紮根。\n今日提醒：看不見的累積，才是未來真正撐住你的東西。\n實習暗示：基礎工作不要嫌小，它正在養成你的專業感。",
+        "今日籤語：你以為的低潮，其實是版本更新中。\n今日提醒：卡住的時候，不是你壞掉，是你正在升級。\n實習暗示：今天遇到挫折，先暫停三秒，再重新整理狀態。",
+        "今日籤語：不是每一條路都要發光，有些路是走過才會亮。\n今日提醒：未來不是一開始就清楚，而是在行動中慢慢出現。\n實習暗示：今天多觀察一點，多學一點，答案會慢慢靠近。",
+        "今日籤語：你帶著不安出發，也會帶著答案回來。\n今日提醒：害怕不會取消你的勇敢，它只是陪你一起上路。\n實習暗示：今天不用假裝不緊張，誠實面對就已經很勇敢。",
+        "今日籤語：今日宜勇敢，不宜自我否定。\n今日提醒：你可以不熟練，但不代表你不適合。\n實習暗示：犯錯後先修正，不要急著否定整個自己。",
+        "今日籤語：你的努力不一定立刻被看見，但一定正在發生。\n今日提醒：有些成長是靜音模式，不會通知，但會累積。\n實習暗示：今天把一件小事做好，就是你給未來的存款。",
+        "今日籤語：別把一次失誤，解讀成整個人生的判決。\n今日提醒：錯誤只是訊息，不是身份。\n實習暗示：今天如果被提醒，先記下來，這是職場給你的攻略提示。",
+        "今日籤語：世界很大，但你也不是空手而來。\n今日提醒：你帶著過去所有學習與經驗來到這裡。\n實習暗示：今天遇到陌生任務，可以先從你會的部分開始。",
+        "今日籤語：今日幸運物是你的好奇心。\n今日提醒：好奇會打開門，主動會讓你走進去。\n實習暗示：今天至少問一個有品質的問題。",
+        "今日籤語：你不需要立刻被所有人理解，你只需要先理解自己。\n今日提醒：別人的評價是參考，不是你的最終定義。\n實習暗示：今天下班後問自己：我學到什麼？我哪裡進步了？",
+        "今日籤語：先照顧好自己，才有力氣成為更好的自己。\n今日提醒：努力不是燃燒殆盡，而是穩定前進。\n實習暗示：今天記得吃飯、喝水、休息，這也是專業的一部分。",
+        "今日籤語：你正在經過的，不只是實習，是人生第一次大型副本。\n今日提醒：副本會有怪，也會有裝備和經驗值。\n實習暗示：今天遇到困難，不要只想逃，試著把它當成關卡。",
+        "今日籤語：今天的關鍵字是「慢慢來，但不要停」。\n今日提醒：速度不是唯一標準，持續才是。\n實習暗示：今天把手上的任務一步一步完成，不用和別人比較。",
+        "今日籤語：被現實撞一下，不代表理想就碎了。\n今日提醒：理想不是玻璃，它可以被修整、被加固、被重新理解。\n實習暗示：今天如果發現理想和現實不同，先觀察，不急著放棄。",
+        "今日籤語：你不是來證明自己完美，是來學會如何更完整。\n今日提醒：實習不是表演，是練習。\n實習暗示：今天允許自己有不會的地方，然後把它學起來。",
+        "今日籤語：今日宜請教前輩，忌硬撐到底。\n今日提醒：會求助不是弱，是懂得善用資源。\n實習暗示：今天遇到卡關，先整理問題，再去問人。",
+        "今日籤語：你的未來正在讀取中，請不要中途關機。\n今日提醒：焦慮只是系統正在載入，不代表結果不好。\n實習暗示：今天別急著看成果，先完成眼前的進度條。",
+        "今日籤語：你不是被丟進世界，是被世界邀請練等。\n今日提醒：每個新環境，都是一次角色成長。\n實習暗示：今天把自己當成新手玩家，不丟臉，因為新手才會升級。",
+        "今日籤語：今日的幸運方向，是你願意踏出的那一步。\n今日提醒：方向有時不是想出來的，是走出來的。\n實習暗示：今天主動做一件你原本會猶豫的事。",
+        "今日籤語：別怕被看見青澀，種子本來就不是樹。\n今日提醒：成熟不是一開始就有，而是時間慢慢養出來的。\n實習暗示：今天保持禮貌、保持學習，你已經在長大。",
+        "今日籤語：今天不求滿分，只求真實參與。\n今日提醒：人生不是考卷，很多題沒有標準答案。\n實習暗示：今天不要只想做對，也要理解為什麼這樣做。",
+        "今日籤語：你所經過的混亂，會在某天變成故事。\n今日提醒：當下的不懂，未來可能會成為你的養分。\n實習暗示：今天把印象最深的一件事記下來，未來你會感謝它。",
+        "今日籤語：保持柔軟，不代表沒有力量。\n今日提醒：真正厲害的人，懂得調整，也懂得堅持。\n實習暗示：今天遇到變動時，先穩住，再應變。",
+        "今日籤語：你不是孤單上路，你帶著很多人的祝福。\n今日提醒：有些陪伴看不見，但它一直在。\n實習暗示：今天累的時候，想想還有人在背後支持你。",
+        "今日籤語：今日宜相信自己，忌過度腦補災難。\n今日提醒：焦慮很會編劇，但不一定會成真。\n實習暗示：今天先把事情做好，不要先把自己嚇倒。",
+        "今日籤語：你今天學會的一點點，會在未來某天救你一大段。\n今日提醒：小經驗不是小事，它們會在關鍵時刻集合。\n實習暗示：今天把細節學起來，哪怕只是一個流程、一句話、一個方法。",
+        "今日籤語：願你今日出發，不為了成為誰期待的樣子，而是更靠近真正的自己。\n今日提醒：實習的終點不是變成別人，而是更理解自己。\n實習暗示：今天給自己一點肯定，你已經走在路上了。"
+    ];
+
+    function drawFortune() {
+        const btn = document.getElementById('drawBtn');
+        const box = document.getElementById('fortuneBox');
+        const resultCard = document.getElementById('resultCard');
+        const fortuneText = document.getElementById('fortuneText');
+
+        // 鎖定按鈕，隱藏舊籤詩
+        btn.disabled = true;
+        resultCard.classList.remove('show');
+        
+        // 觸發搖晃動畫與讀取狀態
+        box.classList.add('shaking');
+        box.innerText = "⏳";
+
+        // 模擬祈福搖晃時間（1秒）
+        setTimeout(() => {
+            box.classList.remove('shaking');
+            box.innerText = "📜";
+
+            // 隨機抽選一則精選語錄
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            const selectedQuote = quotes[randomIndex];
+
+            // 塞入內文並淡入顯示
+            fortuneText.innerText = selectedQuote;
+            resultCard.classList.add('show');
+            
+            // 解鎖按鈕
+            btn.disabled = false;
+        }, 1000);
+    }
+</script>
+
+</body>
+</html>
